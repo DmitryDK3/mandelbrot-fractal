@@ -1,10 +1,11 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.util.Random;
 
-import static java.awt.Color.BLACK;
-import static java.awt.Color.YELLOW;
+import static java.awt.Color.*;
 
 public class MandelbrotFractal extends JFrame {
     private static final int WIDTH = 600;
@@ -30,6 +31,7 @@ public class MandelbrotFractal extends JFrame {
         setLocationRelativeTo(null);
         addCanvas();
         setVisible(true);
+        
         updateFractal();
     }
 
@@ -38,6 +40,7 @@ public class MandelbrotFractal extends JFrame {
         bufferedImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         canvas.setBackground(BLACK);
         canvas.setVisible(true);
+        addMouseListener(canvas);
         add(canvas, BorderLayout.CENTER);
     }
 
@@ -58,7 +61,12 @@ public class MandelbrotFractal extends JFrame {
     }
 
     private int gerRGBValue(int iterationCount) {
-        return iterationCount == ITERATION_LIMIT ? BLACK.getRGB() : YELLOW.getRGB();
+        int color = PINK.getRGB();
+        int mask = 0b00000000000001011001010;
+        int shiftOfMask = iterationCount / 13;
+
+        return iterationCount == ITERATION_LIMIT ? BLACK.getRGB() : color | (mask << shiftOfMask);
+
 
     }
 
@@ -87,7 +95,7 @@ public class MandelbrotFractal extends JFrame {
         return iterationCount;
     }
 
-    class Canvas extends JPanel{
+    class Canvas extends JPanel implements MouseListener {
         @Override
         public Dimension getPreferredSize() {
             return new Dimension(MandelbrotFractal.WIDTH, MandelbrotFractal.HEIGHT);
@@ -98,5 +106,53 @@ public class MandelbrotFractal extends JFrame {
 
             g.drawImage(bufferedImage, 0, 0, null);
         }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+            double x = (double) e.getX();
+            double y = (double) e.getY();
+            int button = e.getButton();
+
+            switch (button) {
+                case MouseEvent.BUTTON1:
+                    System.out.println("pressed left button" + button);
+                    adjustZoom(x,y, currentZoom*2);
+                    break;
+                 case MouseEvent.BUTTON3:
+
+                     System.out.println("pressed right button" + button);
+                     adjustZoom(x,y, currentZoom/2);
+                     break;
+            }
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+
+        }
+    }
+
+    private void adjustZoom(double newX, double newY, double newZoomFactror) {
+        currentTopX += newX/currentZoom;
+        currentTopY -= newY/currentZoom;
+        currentZoom = newZoomFactror;
+        currentTopX -= (WIDTH/2)/currentZoom;
+        currentTopY += (HEIGHT/2)/currentZoom;
+        updateFractal();
     }
 }
